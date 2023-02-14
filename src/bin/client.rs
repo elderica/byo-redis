@@ -28,14 +28,16 @@ fn query(stream: &mut TcpStream, text: &[u8]) -> io::Result<()> {
     wbuf.extend_from_slice(&text[..len]);
     let r = stream.write_all(&wbuf);
     if r.is_err() {
-        eprintln!("write_all(wbuf) error");
+        let e = r.as_ref().unwrap_err();
+        eprintln!("write_all(wbuf) error: {e:?}");
         return r;
     }
 
     let mut proto_len = [0; 4];
     let r = stream.read_exact(&mut proto_len);
     if r.is_err() {
-        eprintln!("read(proto_size) error: {:?}", r.as_ref().err());
+        let e = r.as_ref().unwrap_err();
+        eprintln!("read(proto_size) error: {e:?}");
         return r;
     }
 
@@ -50,7 +52,8 @@ fn query(stream: &mut TcpStream, text: &[u8]) -> io::Result<()> {
     let mut rbuf = vec![0; len as usize];
     let r = stream.read_exact(&mut rbuf);
     if r.is_err() {
-        eprintln!("read(reply_body) error");
+        let e = r.as_ref().unwrap_err();
+        eprintln!("read(reply_body) error: {e:?}");
         return r;
     }
 

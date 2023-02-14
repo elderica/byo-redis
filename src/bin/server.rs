@@ -28,13 +28,10 @@ fn one_request(stream: &mut TcpStream) -> io::Result<()> {
     let mut proto_len = [0; 4];
     let r = stream.read_exact(&mut proto_len);
     if r.is_err() {
-        // eprintln!("read(proto_len) error: {:?}", r.as_ref().err());
-        let e = r.as_ref().err().unwrap();
+        let e = r.as_ref().unwrap_err();
         match e.kind() {
             ErrorKind::UnexpectedEof => eprintln!("EOF"),
-            _ => {
-                eprintln!("read(proto_len) error");
-            }
+            _ => eprintln!("read(proto_len) error: {e:?}"),
         }
         return r;
     }
@@ -50,12 +47,18 @@ fn one_request(stream: &mut TcpStream) -> io::Result<()> {
     let mut rbuf = vec![0; len as usize];
     let r = stream.read_exact(&mut rbuf);
     if r.is_err() {
-        eprintln!("read(request_ body) error");
+        let e = r.as_ref().unwrap_err();
+        eprintln!("read(request_body) error: {e:?}");
         return r;
     }
 
     // do something
-    let s = std::str::from_utf8(&rbuf).unwrap();
+    // let s: String = rbuf
+    //     .iter()
+    //     .map(|b| std::ascii::escape_default(*b).collect())
+    //     .flat_map(String::from_utf8)
+    //     .collect();
+    let s = String::from_utf8_lossy(&rbuf).into_owned();
     println!("client says: {s}");
 
     // reply using the same protocol
